@@ -13,11 +13,12 @@ namespace Netherlands3D.JavascriptConnection
 		[DllImport("__Internal")]
 		private static extern void DisplayDOMObjectWithID(string id = "htmlID", string display = "none", float x = 0, float y = 0, float width = 0, float height = 0, float offsetX = 0, float offsetY = 0);
 		
-		[SerializeField]
-		private string htmlObjectID = "";	
+		[SerializeField] private string htmlObjectID = "";	
+		[SerializeField] private bool alignEveryUpdate = true;
 
-		[SerializeField]
-		private bool alignEveryUpdate = true;
+		private RectTransform rectTransform;
+		private RectTransform canvasRectTransform;
+		private Canvas rootCanvas;
 
 #if !UNITY_EDITOR && UNITY_WEBGL
 		private void Update()
@@ -27,6 +28,10 @@ namespace Netherlands3D.JavascriptConnection
 		}
 		private void OnEnable()
         {
+			rectTransform = GetComponent<RectTransform>();
+			rootCanvas = rectTransform.root.GetComponent<Canvas>();
+			canvasRectTransform = rootCanvas.GetComponentInParent<RectTransform>();
+
             AlignHTMLOverlay();
         }
         private void OnDisable()
@@ -52,14 +57,12 @@ namespace Netherlands3D.JavascriptConnection
 		/// </summary>
 		private void AlignHTMLOverlay()
 		{
-
-			Canvas canvas = GetComponent<RectTransform>().root.GetComponent<Canvas>();
-			var canvasScaleFactor = canvas.scaleFactor;	
-			float canvasheight = canvas.GetComponentInParent<RectTransform>().rect.height * canvasScaleFactor;
-			float canvaswidth = canvas.GetComponentInParent<RectTransform>().rect.width * canvasScaleFactor;
+			var canvasScaleFactor = rootCanvas.scaleFactor;	
+			float canvasheight = canvasRectTransform.rect.height * canvasScaleFactor;
+			float canvaswidth = canvasRectTransform.rect.width * canvasScaleFactor;
 
 			Vector3[] corners = new Vector3[4];
-			GetComponent<RectTransform>().GetWorldCorners(corners);
+			rectTransform.GetWorldCorners(corners);
 			
 			DisplayDOMObjectWithID(htmlObjectID, "inline",
 				corners[0].x / canvaswidth,
