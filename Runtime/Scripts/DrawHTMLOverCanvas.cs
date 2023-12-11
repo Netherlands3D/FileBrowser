@@ -12,20 +12,12 @@ namespace Netherlands3D.JavascriptConnection
 		private static extern void AddFileInput(string inputName, string fileExtentions, bool multiSelect);
 		[DllImport("__Internal")]
 		private static extern void DisplayDOMObjectWithID(string id = "htmlID", string display = "none", float x = 0, float y = 0, float width = 0, float height = 0, float offsetX = 0, float offsetY = 0);
-
 		
 		[SerializeField]
-		private string htmlObjectID = "";
-
-		
+		private string htmlObjectID = "";	
 
 		[SerializeField]
 		private bool alignEveryUpdate = true;
-
-		
-
-		
-
 
 #if !UNITY_EDITOR && UNITY_WEBGL
 		private void Update()
@@ -62,8 +54,10 @@ namespace Netherlands3D.JavascriptConnection
 		{
 
 			Canvas canvas = GetComponent<RectTransform>().root.GetComponent<Canvas>();
-			float canvasheight = canvas.GetComponentInParent<RectTransform>().rect.height;
-			float canvaswidth = canvas.GetComponentInParent<RectTransform>().rect.width;
+			var canvasScaleFactor = canvas.scaleFactor;	
+			float canvasheight = canvas.GetComponentInParent<RectTransform>().rect.height * canvasScaleFactor;
+			float canvaswidth = canvas.GetComponentInParent<RectTransform>().rect.width * canvasScaleFactor;
+
 			Vector3[] corners = new Vector3[4];
 			GetComponent<RectTransform>().GetWorldCorners(corners);
 			
@@ -72,10 +66,8 @@ namespace Netherlands3D.JavascriptConnection
 				corners[0].y / canvasheight,
 				(corners[2].x - corners[0].x) / canvaswidth,
 				(corners[2].y - corners[0].y) / canvasheight
-			); ; ; ;
+			);
 			
 		}
-
-		
 	}
 }
