@@ -19,11 +19,12 @@ mergeInto(LibraryManager.library, {
         if (targetDomObject != null) {
             targetDomObject.style.display = UTF8ToString(display);
             
-            	targetDomObject.style.left=left+(x*canvasWidth)+"px";
-		targetDomObject.style.top=bottom-((y+height)*canvasHeight)+"px";
-		targetDomObject.style.width = (width)*canvasWidth + "px";
+            targetDomObject.style.left=left+(x*canvasWidth)+"px";
+		    targetDomObject.style.top=bottom-((y+height)*canvasHeight)+"px";
+		    targetDomObject.style.width = (width)*canvasWidth + "px";
             targetDomObject.style.height = (height)*canvasHeight + "px";
-        } else {
+        } 
+        else {
             console.log("Interface.jslib->DisplayDOMObjectWithID: Cant find DOM object with id: " + idString + ".");
         }
     },
