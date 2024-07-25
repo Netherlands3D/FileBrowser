@@ -51,6 +51,10 @@ mergeInto(LibraryManager.library, {
             console.log("File dropped");
             event.stopPropagation();
             event.preventDefault();
+
+            // This looks weird, but this method sets the callback to actually process the files
+            SendMessage(inputFieldName, 'ClickNativeButton');
+            
             // tell Unity how many files to expect
             window.ReadFiles(event.dataTransfer.files);
         });
