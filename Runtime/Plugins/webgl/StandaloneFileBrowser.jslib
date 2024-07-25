@@ -28,9 +28,13 @@ mergeInto(LibraryManager.library, {
             newInput.accept = acceptedExtentionsArray.toString();
             newInput.multiple = multiFileSelect;
             newInput.onclick = function () {
+                // Reset value to null so that onChange will always trigger, even when re-uploading the same file
+                this.value = null;
                 SendMessage(inputFieldName, 'ClickNativeButton');
             };
             newInput.onchange = function () {
+                if (this.value === null) return;
+                
                 window.ReadFiles(this.files);
             };
             newInput.style.cssText = 'display:none; cursor:pointer; opacity: 0; position: fixed; bottom: 0; left: 0; z-index: 2; width: 0px; height: 0px;';
