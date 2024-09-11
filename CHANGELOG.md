@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2024-09-11
+
+### Added
+
+- Headless mode - if a FileOpen script is not attached to a UI Canvas it is considered to be headless and you can call 
+  the method "OpenFile" to start the file browser. This now works in-editor and in webgl builds
+
 ## [2.0.3] - 2024-07-25
 
 ### Fixed

@@ -1,3 +1,6 @@
+using System;
+using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
 using SFB;
@@ -8,6 +11,12 @@ using Netherlands3D.JavascriptConnection;
 #endif
 public class FileOpen : MonoBehaviour
 {
+    private Button button;
+
+    [DllImport("__Internal")]
+    [UsedImplicitly]
+    private static extern void BrowseForFile(string inputFieldName);
+
     [Tooltip("Allowed file input selections")]
     [SerializeField] private string fileExtentions = "csv";
 
@@ -19,9 +28,16 @@ public class FileOpen : MonoBehaviour
 #if !UNITY_EDITOR && UNITY_WEBGL
     private string fileInputName;
     private FileInputIndexedDB javaScriptFileInputHandler;
+#endif
 
-    void Start()
+    private void Awake()
     {
+        button = GetComponent<Button>();
+    }
+
+    private void Start()
+    {
+#if !UNITY_EDITOR && UNITY_WEBGL
         javaScriptFileInputHandler = FindObjectOfType<FileInputIndexedDB>(true);
         if (javaScriptFileInputHandler == null)
         {
@@ -35,21 +51,31 @@ public class FileOpen : MonoBehaviour
 
         DrawHTMLOverCanvas javascriptInput = gameObject.AddComponent<DrawHTMLOverCanvas>();
         javascriptInput.SetupInput(fileInputName, fileExtentions, multiSelect);
-        javascriptInput.AlignObjectID(fileInputName);
+
+        // if button is null, no visual element is attached and we should prevent the DrawHTMLOverCanvas from actually
+        // drawing something over the whole canvas. We still need the HTML input element though as that triggers the
+        // file upload dialog in `OpenFile()`
+        javascriptInput.AlignObjectID(fileInputName, button != null);
+#else
+        if (button) button.onClick.AddListener(OpenFile);
+#endif
     }
 
+#if !UNITY_EDITOR && UNITY_WEBGL
     public void ClickNativeButton()
     {
         javaScriptFileInputHandler.SetCallbackAddress(SendResults);
     }
-#else
-    private void Start()
-    {
-        GetComponent<Button>().onClick.AddListener(OpenFile);
-    }
+#endif
 
+    /// <summary>
+    /// Opens the File browser to pick a file to import
+    /// </summary>
     public void OpenFile()
     {
+#if !UNITY_EDITOR && UNITY_WEBGL
+        BrowseForFile("_" + gameObject.GetInstanceID());
+#else
         string[] fileExtentionNames = fileExtentions.Split(',');
         ExtensionFilter[] extentionfilters = new ExtensionFilter[1];
 
@@ -63,8 +89,8 @@ public class FileOpen : MonoBehaviour
             resultingFiles += System.IO.Path.GetFileName(filenames[i])+ ",";
         }
         SendResults(resultingFiles);
-    }
 #endif
+    }
 
     public void SendResults(string filePaths)
     {

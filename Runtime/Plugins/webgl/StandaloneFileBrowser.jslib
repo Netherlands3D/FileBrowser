@@ -131,6 +131,13 @@ mergeInto(LibraryManager.library, {
         };
     },
 
+    /**
+     * Can be called by Unity to open (click) the file input with the given field name.
+     */
+    BrowseForFile: function (inputFieldName) {
+        document.getElementById(UTF8ToString(inputFieldName)).click();
+    },
+
     UploadFromIndexedDB: function (filePath, targetURL, callbackObject, callbackMethodSuccess, callbackMethodFailed) {
         var callbackObjectString = UTF8ToString(callbackObject);
         var callbackMethodSuccessString = UTF8ToString(callbackMethodSuccess);
