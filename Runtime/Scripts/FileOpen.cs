@@ -11,7 +11,7 @@ using Netherlands3D.JavascriptConnection;
 #endif
 public class FileOpen : MonoBehaviour
 {
-    [CanBeNull] private Button button;
+    private Button button;
 
     [DllImport("__Internal")]
     [UsedImplicitly]
