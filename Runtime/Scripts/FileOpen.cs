@@ -16,7 +16,7 @@ public class FileOpen : MonoBehaviour
 
     [DllImport("__Internal")]
     [UsedImplicitly]
-    private static extern void BrowseForFile(string inputFieldName);
+    private static extern void BrowseForFile(string inputFieldName, bool incrementFileName);
 
     [Tooltip("Allowed file input selections")] [SerializeField]
     private string fileExtentions = "csv";
