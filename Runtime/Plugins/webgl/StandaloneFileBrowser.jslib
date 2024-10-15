@@ -12,6 +12,7 @@ mergeInto(LibraryManager.library, {
         window.indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.OIndexedDB || window.msIndexedDB;
         window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.OIDBTransaction || window.msIDBTransaction;
         window.dbVersion = 21;
+        window.incrementFileName = true;
 
         //Inject our required html input fields
         window.InjectHiddenFileInput = function InjectHiddenFileInput(inputFieldName, acceptedExtentions, multiFileSelect) {
@@ -34,7 +35,7 @@ mergeInto(LibraryManager.library, {
             };
             newInput.onchange = function () {
                 if (this.value === null) return;
-                
+
                 window.ReadFiles(this.files);
             };
             newInput.style.cssText = 'display:none; cursor:pointer; opacity: 0; position: fixed; bottom: 0; left: 0; z-index: 2; width: 0px; height: 0px;';
@@ -114,17 +115,47 @@ mergeInto(LibraryManager.library, {
             };
 
             var transaction = window.databaseConnection.transaction(["FILE_DATA"], "readwrite");
-            var newIndexedFilePath = window.databaseName + "/" + filename;
-            var dbRequest = transaction.objectStore("FILE_DATA").put(data, newIndexedFilePath);
+            var objectStore = transaction.objectStore("FILE_DATA");//.put(data, newIndexedFilePath);
+
+            function getUniqueFileName (objectStore, baseName, extension) {
+                // Helper function to build the file name
+                function buildFileName(base, number, ext) {
+                    return number > 0 ? `${base}(${number}).${ext}` : `${base}.${ext}`;
+                }
+
+                let number = 0;
+                let fileName = buildFileName(baseName, number, extension);
+
+                // Check if the file already exists in objectStore and increment the number if necessary
+                while (objectStore.includes(fileName)) {
+                    number++;
+                    fileName = buildFileName(baseName, number, extension);
+                }
+
+                return fileName;
+            }
+            
+            let newFileName = filename;
+            console.log(window.incrementFileName);
+
+            if (window.incrementFileName) {
+                let fileNameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
+                let fileExtension = filename.substring(filename.lastIndexOf('.'));
+
+                newFileName = getUniqueFileName(objectStore, fileNameWithoutExtension, fileExtension);
+            }
+            
+            var newIndexedFilePath = window.databaseName + "/" + newFileName;
+            let dbRequest = objectStore.put(data, newIndexedFilePath);
 
             console.log("Saving file: " + newIndexedFilePath);
             dbRequest.onsuccess = function () {
-                SendMessage('UserFileUploads', 'LoadFile', filename);
+                SendMessage('UserFileUploads', 'LoadFile', newFileName);
                 console.log("File saved: " + newIndexedFilePath);
                 window.FileSaved();
             };
             dbRequest.onerror = function () {
-                SendMessage('UserFileUploads', 'LoadFileError', filename);
+                SendMessage('UserFileUploads', 'LoadFileError', newFileName);
                 alert("Could not save: " + newIndexedFilePath);
                 window.FileSaved();
             };
@@ -134,7 +165,8 @@ mergeInto(LibraryManager.library, {
     /**
      * Can be called by Unity to open (click) the file input with the given field name.
      */
-    BrowseForFile: function (inputFieldName) {
+    BrowseForFile: function (inputFieldName, incrementFileName) {
+        window.incrementFileName = incrementFileName;
         document.getElementById(UTF8ToString(inputFieldName)).click();
     },
 
@@ -303,7 +335,7 @@ mergeInto(LibraryManager.library, {
             var urls = [];
             ReadFiles(urls);
 
-            
+
             // Remove after file selected
             // document.body.removeChild(fileInput);
         }

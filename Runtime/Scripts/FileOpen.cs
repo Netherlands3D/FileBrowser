@@ -24,6 +24,9 @@ public class FileOpen : MonoBehaviour
     [Tooltip("Allowed selection multiple files")] [SerializeField]
     private bool multiSelect = false;
 
+    [Tooltip("If true, opening a file with the same name will add a number to it instead of overwriting the existing file. If false, an existing file will be overwritten")] [SerializeField]
+    private bool incrementFileName = false;
+
     public UnityEvent<string> onFilesSelected = new();
 
 #if !UNITY_EDITOR && UNITY_WEBGL
@@ -31,9 +34,19 @@ public class FileOpen : MonoBehaviour
     private FileInputIndexedDB javaScriptFileInputHandler;
 #endif
 
+    public Toggle test;
+
     private void Awake()
     {
         button = GetComponent<Button>();
+        
+        test.onValueChanged.AddListener(Change);
+    }
+
+    private void Change(bool arg0)
+    {
+        incrementFileName = arg0;
+        print("incrementing: " +incrementFileName);
     }
 
     private void Start()
@@ -75,7 +88,7 @@ public class FileOpen : MonoBehaviour
     public void OpenFile()
     {
 #if !UNITY_EDITOR && UNITY_WEBGL
-        BrowseForFile("_" + gameObject.GetInstanceID());
+        BrowseForFile("_" + gameObject.GetInstanceID(), incrementFileName);
 #else
         string[] fileExtentionNames = fileExtentions.Split(',');
         ExtensionFilter[] extentionfilters = new ExtensionFilter[1];
@@ -94,7 +107,7 @@ public class FileOpen : MonoBehaviour
             string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(originalFileName);
             string fileExtension = System.IO.Path.GetExtension(originalFileName);
 
-            while (System.IO.File.Exists(destinationPath))
+            while (incrementFileName && System.IO.File.Exists(destinationPath))
             {
                 // Create a new filename with a counter appended
                 string newFileName = $"{fileNameWithoutExtension}({counter}){fileExtension}";
