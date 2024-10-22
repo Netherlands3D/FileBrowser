@@ -116,8 +116,7 @@ mergeInto(LibraryManager.library, {
             var transaction = window.databaseConnection.transaction(["FILE_DATA"], "readwrite");
             var objectStore = transaction.objectStore("FILE_DATA");//.put(data, newIndexedFilePath);
 
-            function getUniqueFileName(objectStore, baseName, extension) {
-                // Helper function to build the file name
+            function getUniqueFileName(objectStore, baseName, extension, callback) {
                 function buildFileName(base, number, ext) {
                     return number > 0 ? `${base}(${number}).${ext}` : `${base}.${ext}`;
                 }
@@ -125,34 +124,49 @@ mergeInto(LibraryManager.library, {
                 let number = 0;
                 let fileName = buildFileName(baseName, number, extension);
 
-                // Check if the file already exists in objectStore and increment the number if necessary
-                while (objectStore.includes(fileName)) {
-                    number++;
-                    fileName = buildFileName(baseName, number, extension);
+                function checkFileName() {
+                    let key = window.databaseName + "/" + fileName;
+                    let request = objectStore.getKey(key);  // Use getKey to check if the file exists
+
+                    request.onsuccess = function () {
+                        if (request.result !== undefined) {
+                            number++;
+                            fileName = buildFileName(baseName, number, extension);
+                            checkFileName();  // Check the next possible file name
+                        } else {
+                            callback(fileName);  // Return the unique file name when no match is found
+                        }
+                    };
+
+                    request.onerror = function () {
+                        console.log("Error checking file name.");
+                    };
                 }
 
-                return fileName;
+                checkFileName();
             }
 
             let newFileName = filename;
             let fileNameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
             let fileExtension = filename.substring(filename.lastIndexOf('.'));
-            newFileName = getUniqueFileName(objectStore, fileNameWithoutExtension, fileExtension);
+            getUniqueFileName(objectStore, fileNameWithoutExtension, fileExtension, function (uniqueFileName) {
+                newFileName = uniqueFileName;  // The result of the unique file name calculation
 
-            var newIndexedFilePath = window.databaseName + "/" + newFileName;
-            let dbRequest = objectStore.put(data, newIndexedFilePath);
+                var newIndexedFilePath = window.databaseName + "/" + newFileName;
+                let dbRequest = objectStore.put(data, newIndexedFilePath);
 
-            console.log("Saving file: " + newIndexedFilePath);
-            dbRequest.onsuccess = function () {
-                SendMessage('UserFileUploads', 'LoadFile', newFileName);
-                console.log("File saved: " + newIndexedFilePath);
-                window.FileSaved();
-            };
-            dbRequest.onerror = function () {
-                SendMessage('UserFileUploads', 'LoadFileError', newFileName);
-                alert("Could not save: " + newIndexedFilePath);
-                window.FileSaved();
-            };
+                console.log("Saving file: " + newIndexedFilePath);
+                dbRequest.onsuccess = function () {
+                    SendMessage('UserFileUploads', 'LoadFile', newFileName);
+                    console.log("File saved: " + newIndexedFilePath);
+                    window.FileSaved();
+                };
+                dbRequest.onerror = function () {
+                    SendMessage('UserFileUploads', 'LoadFileError', newFileName);
+                    alert("Could not save: " + newIndexedFilePath);
+                    window.FileSaved();
+                };
+            });
         };
     },
 
