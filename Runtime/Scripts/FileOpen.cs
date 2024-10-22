@@ -9,6 +9,7 @@ using UnityEngine.Events;
 #if !UNITY_EDITOR && UNITY_WEBGL
 using Netherlands3D.JavascriptConnection;
 #endif
+
 public class FileOpen : MonoBehaviour
 {
     private Button button;
@@ -17,11 +18,11 @@ public class FileOpen : MonoBehaviour
     [UsedImplicitly]
     private static extern void BrowseForFile(string inputFieldName);
 
-    [Tooltip("Allowed file input selections")]
-    [SerializeField] private string fileExtentions = "csv";
+    [Tooltip("Allowed file input selections")] [SerializeField]
+    private string fileExtentions = "csv";
 
-    [Tooltip("Allowed selection multiple files")]
-    [SerializeField] private bool multiSelect = false;
+    [Tooltip("Allowed selection multiple files")] [SerializeField]
+    private bool multiSelect = false;
 
     public UnityEvent<string> onFilesSelected = new();
 
@@ -85,9 +86,26 @@ public class FileOpen : MonoBehaviour
         string resultingFiles = "";
         for (int i = 0; i < filenames.Length; i++)
         {
-            System.IO.File.Copy(filenames[i], System.IO.Path.Combine(Application.persistentDataPath, System.IO.Path.GetFileName(filenames[i])),true);
-            resultingFiles += System.IO.Path.GetFileName(filenames[i])+ ",";
+            string destinationFolder = Application.persistentDataPath;
+            string originalFileName = System.IO.Path.GetFileName(filenames[i]);
+            string destinationPath = System.IO.Path.Combine(destinationFolder, originalFileName);
+
+            int counter = 1;
+            string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(originalFileName);
+            string fileExtension = System.IO.Path.GetExtension(originalFileName);
+
+            while (System.IO.File.Exists(destinationPath))
+            {
+                // Create a new filename with a counter appended
+                string newFileName = $"{fileNameWithoutExtension}({counter}){fileExtension}";
+                destinationPath = System.IO.Path.Combine(destinationFolder, newFileName);
+                counter++;
+            }
+
+            System.IO.File.Copy(filenames[i], destinationPath, true);
+            resultingFiles += System.IO.Path.GetFileName(destinationPath) + ",";
         }
+
         SendResults(resultingFiles);
 #endif
     }

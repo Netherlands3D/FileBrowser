@@ -34,7 +34,7 @@ mergeInto(LibraryManager.library, {
             };
             newInput.onchange = function () {
                 if (this.value === null) return;
-                
+
                 window.ReadFiles(this.files);
             };
             newInput.style.cssText = 'display:none; cursor:pointer; opacity: 0; position: fixed; bottom: 0; left: 0; z-index: 2; width: 0px; height: 0px;';
@@ -114,20 +114,59 @@ mergeInto(LibraryManager.library, {
             };
 
             var transaction = window.databaseConnection.transaction(["FILE_DATA"], "readwrite");
-            var newIndexedFilePath = window.databaseName + "/" + filename;
-            var dbRequest = transaction.objectStore("FILE_DATA").put(data, newIndexedFilePath);
+            var objectStore = transaction.objectStore("FILE_DATA");
 
-            console.log("Saving file: " + newIndexedFilePath);
-            dbRequest.onsuccess = function () {
-                SendMessage('UserFileUploads', 'LoadFile', filename);
-                console.log("File saved: " + newIndexedFilePath);
-                window.FileSaved();
-            };
-            dbRequest.onerror = function () {
-                SendMessage('UserFileUploads', 'LoadFileError', filename);
-                alert("Could not save: " + newIndexedFilePath);
-                window.FileSaved();
-            };
+            function getUniqueFileName(objectStore, baseName, extension, callback) {
+                function buildFileName(base, number, ext) {
+                    return number > 0 ? `${base}(${number})${ext}` : `${base}${ext}`;
+                }
+
+                let number = 0;
+                let fileName = buildFileName(baseName, number, extension);
+
+                function checkFileName() {
+                    let key = window.databaseName + "/" + fileName;
+                    let request = objectStore.getKey(key);  // Use getKey to check if the file exists
+
+                    request.onsuccess = function () {
+                        if (request.result !== undefined) {
+                            number++;
+                            fileName = buildFileName(baseName, number, extension);
+                            checkFileName();  // Check the next possible file name
+                        } else {
+                            callback(fileName);  // Return the unique file name when no match is found
+                        }
+                    };
+
+                    request.onerror = function () {
+                        console.log("Error checking file name.");
+                    };
+                }
+
+                checkFileName();
+            }
+
+            let newFileName = filename;
+            let fileNameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
+            let fileExtension = filename.substring(filename.lastIndexOf('.'));
+            getUniqueFileName(objectStore, fileNameWithoutExtension, fileExtension, function (uniqueFileName) {
+                newFileName = uniqueFileName;  // The result of the unique file name calculation
+
+                var newIndexedFilePath = window.databaseName + "/" + newFileName;
+                let dbRequest = objectStore.put(data, newIndexedFilePath);
+
+                console.log("Saving file: " + newIndexedFilePath);
+                dbRequest.onsuccess = function () {
+                    SendMessage('UserFileUploads', 'LoadFile', newFileName);
+                    console.log("File saved: " + newIndexedFilePath);
+                    window.FileSaved();
+                };
+                dbRequest.onerror = function () {
+                    SendMessage('UserFileUploads', 'LoadFileError', newFileName);
+                    alert("Could not save: " + newIndexedFilePath);
+                    window.FileSaved();
+                };
+            });
         };
     },
 
@@ -303,7 +342,7 @@ mergeInto(LibraryManager.library, {
             var urls = [];
             ReadFiles(urls);
 
-            
+
             // Remove after file selected
             // document.body.removeChild(fileInput);
         }
