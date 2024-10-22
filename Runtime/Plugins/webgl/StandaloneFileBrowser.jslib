@@ -114,7 +114,7 @@ mergeInto(LibraryManager.library, {
             };
 
             var transaction = window.databaseConnection.transaction(["FILE_DATA"], "readwrite");
-            var objectStore = transaction.objectStore("FILE_DATA");//.put(data, newIndexedFilePath);
+            var objectStore = transaction.objectStore("FILE_DATA");
 
             function getUniqueFileName(objectStore, baseName, extension, callback) {
                 function buildFileName(base, number, ext) {
