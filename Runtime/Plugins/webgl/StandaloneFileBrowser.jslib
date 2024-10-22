@@ -12,7 +12,6 @@ mergeInto(LibraryManager.library, {
         window.indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.OIndexedDB || window.msIndexedDB;
         window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.OIDBTransaction || window.msIDBTransaction;
         window.dbVersion = 21;
-        window.incrementFileName = true;
 
         //Inject our required html input fields
         window.InjectHiddenFileInput = function InjectHiddenFileInput(inputFieldName, acceptedExtentions, multiFileSelect) {
@@ -117,7 +116,7 @@ mergeInto(LibraryManager.library, {
             var transaction = window.databaseConnection.transaction(["FILE_DATA"], "readwrite");
             var objectStore = transaction.objectStore("FILE_DATA");//.put(data, newIndexedFilePath);
 
-            function getUniqueFileName (objectStore, baseName, extension) {
+            function getUniqueFileName(objectStore, baseName, extension) {
                 // Helper function to build the file name
                 function buildFileName(base, number, ext) {
                     return number > 0 ? `${base}(${number}).${ext}` : `${base}.${ext}`;
@@ -134,17 +133,12 @@ mergeInto(LibraryManager.library, {
 
                 return fileName;
             }
-            
+
             let newFileName = filename;
-            console.log(window.incrementFileName);
+            let fileNameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
+            let fileExtension = filename.substring(filename.lastIndexOf('.'));
+            newFileName = getUniqueFileName(objectStore, fileNameWithoutExtension, fileExtension);
 
-            if (window.incrementFileName) {
-                let fileNameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
-                let fileExtension = filename.substring(filename.lastIndexOf('.'));
-
-                newFileName = getUniqueFileName(objectStore, fileNameWithoutExtension, fileExtension);
-            }
-            
             var newIndexedFilePath = window.databaseName + "/" + newFileName;
             let dbRequest = objectStore.put(data, newIndexedFilePath);
 
@@ -165,8 +159,7 @@ mergeInto(LibraryManager.library, {
     /**
      * Can be called by Unity to open (click) the file input with the given field name.
      */
-    BrowseForFile: function (inputFieldName, incrementFileName) {
-        window.incrementFileName = incrementFileName;
+    BrowseForFile: function (inputFieldName) {
         document.getElementById(UTF8ToString(inputFieldName)).click();
     },
 
