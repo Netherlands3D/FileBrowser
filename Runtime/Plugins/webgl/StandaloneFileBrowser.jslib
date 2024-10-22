@@ -118,7 +118,7 @@ mergeInto(LibraryManager.library, {
 
             function getUniqueFileName(objectStore, baseName, extension, callback) {
                 function buildFileName(base, number, ext) {
-                    return number > 0 ? `${base}(${number}).${ext}` : `${base}.${ext}`;
+                    return number > 0 ? `${base}(${number})${ext}` : `${base}${ext}`;
                 }
 
                 let number = 0;
