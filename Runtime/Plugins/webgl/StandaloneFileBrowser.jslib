@@ -379,12 +379,11 @@ mergeInto(LibraryManager.library, {
         downloader.download = filename;
         document.body.appendChild(downloader);
 
-        document.onmouseup = function () {
-            downloader.click();
+        downloader.onclick = function () {
             document.body.removeChild(downloader);
-            document.onmouseup = null;
-
+            document.onclick = null;
             SendMessage(gameObjectName, methodName, "Downloading file");
         }
+        downloader.click();
     }
 });
