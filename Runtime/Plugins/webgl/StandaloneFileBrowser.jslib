@@ -384,7 +384,7 @@ mergeInto(LibraryManager.library, {
             document.body.removeChild(downloader);
             document.onmouseup = null;
 
-            SendMessage(gameObjectName, methodName);
+            SendMessage(gameObjectName, methodName, "Downloading file");
         }
     }
 });
